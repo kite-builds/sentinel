@@ -32,8 +32,12 @@ an actual economy around it, not a chatbot with a wallet bolted on.
 | **x402 pay-per-audit HTTP gateway** (402 challenge → verify → settle) | ✅ working, tested |
 | **On-chain audit attestations** (report hash + risk score per paid audit) | ✅ working, tested |
 | **End-to-end loop proven on a live EVM** (Anvil, 4 e2e tests) | ✅ working, tested |
-| Deploy registries to Mantle Sepolia (gas-blocked, see `contracts/DEPLOY.md`) | ⏳ funding |
+| **Registries deployed to Mantle Sepolia** (see `contracts/DEPLOY.md`) | ✅ live on-chain |
 | Demo video + DoraHacks BUIDL submission | ⏳ next |
+
+**Live on Mantle Sepolia (chain 5003):** IdentityRegistry `0x8F18f53a7ED086FFe409933668b2F3c48d26CbF4` ·
+ValidationRegistry `0x6925CDFb19606C165d1ce4bCA16895a9a9Ac3507` · Sentinel agentId `1` (`sentinel.audit`).
+[View on explorer](https://explorer.sepolia.mantle.xyz/address/0x8F18f53a7ED086FFe409933668b2F3c48d26CbF4).
 
 The whole earning loop — *buyer pays via x402 → agent audits → report anchored
 on-chain → USDC settles* — runs and is asserted end-to-end against a real EVM.
