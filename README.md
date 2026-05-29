@@ -28,10 +28,16 @@ an actual economy around it, not a chatbot with a wallet bolted on.
 |---|---|
 | **Audit engine** (14 detectors, AST-based, never crashes on bad input) | ✅ working, tested |
 | **CLI** (`sentinel Contract.sol [--json]`, CI-usable exit codes) | ✅ working |
-| ERC-8004 identity registration on Mantle testnet | ⏳ next |
-| x402 pay-per-audit gateway (reuses our x402-kit) | ⏳ next |
-| On-chain audit attestations + agent reputation | ⏳ planned |
-| Demo video + DoraHacks BUIDL submission | ⏳ planned |
+| **ERC-8004 Identity + Validation registries** (Foundry, 7 tests) | ✅ working, tested |
+| **x402 pay-per-audit HTTP gateway** (402 challenge → verify → settle) | ✅ working, tested |
+| **On-chain audit attestations** (report hash + risk score per paid audit) | ✅ working, tested |
+| **End-to-end loop proven on a live EVM** (Anvil, 4 e2e tests) | ✅ working, tested |
+| Deploy registries to Mantle Sepolia (gas-blocked, see `contracts/DEPLOY.md`) | ⏳ funding |
+| Demo video + DoraHacks BUIDL submission | ⏳ next |
+
+The whole earning loop — *buyer pays via x402 → agent audits → report anchored
+on-chain → USDC settles* — runs and is asserted end-to-end against a real EVM.
+`npx tsx scripts/demo.ts` plays it start to finish (this is the demo-video script).
 
 ## The audit engine (live now)
 
@@ -62,7 +68,7 @@ Mantle / L2-aware:
 - **MNT-001** `block.number` used for time (unreliable cadence on L2s)
 - **MNT-002** native transfer via `.transfer()`/`.send()` (brittle 2300-gas stipend on L2)
 
-## Usage
+## CLI usage
 
 ```bash
 npm install
@@ -75,21 +81,67 @@ cat Contract.sol | node dist/cli/index.js            # stdin
 Exit code is non-zero when any HIGH-severity issue is found, so it drops
 straight into CI.
 
+## The agent: x402 + ERC-8004 (live now)
+
+Sentinel runs as an HTTP agent (`src/server/`) that sells audits:
+
+```
+GET  /.well-known/agent.json   ERC-8004 AgentCard: identity, capabilities, price
+POST /audit                    x402-paywalled; { source } -> report + on-chain attestation
+```
+
+The payment flow follows the [x402](https://x402.org) "exact" scheme:
+
+1. Unpaid `POST /audit` returns **HTTP 402** with the payment requirements
+   (`accepts[]`: scheme, amount, asset, `payTo`, network).
+2. The buyer signs an **EIP-3009 `TransferWithAuthorization`** (a gasless USDC
+   authorization) and resends it as a base64 `X-PAYMENT` header.
+3. Sentinel verifies the signature, **runs the audit**, writes the report hash +
+   risk score to the **ERC-8004 Validation Registry**, and only then **settles**
+   the payment on-chain. The buyer pays for a delivered, anchored result — never
+   for a 402, never for a failed settlement.
+
+Payment verification/settlement is pluggable (`src/x402/verify.ts`):
+- `LocalVerifier` — verifies the EIP-712 signature offline and settles via
+  `transferWithAuthorization` using a relayer wallet. Self-contained: no external
+  facilitator, works against any EVM you control (Anvil, Mantle, …).
+- `FacilitatorVerifier` — delegates verify/settle to a hosted x402 facilitator.
+
+### On-chain contracts (`contracts/`)
+
+- **IdentityRegistry** — minimal ERC-8004: each agent gets a unique on-chain id
+  resolvable by domain/address. Sentinel registers itself here.
+- **ValidationRegistry** — proof-of-task-completion: every paid audit records
+  `(auditorAgentId, subjectHash, reportHash, riskScore)`. A buyer can later
+  `verify()` that the report they hold is exactly what was anchored, and read the
+  agent's full audit track record.
+
+```bash
+# run the live agent against a local chain
+PATH=$HOME/.foundry/bin:$PATH npx tsx scripts/demo.ts
+```
+
 ## Test
 
 ```bash
-npm test
+npm test                                  # vitest: analyzer + HTTP gateway + e2e
+PATH=$HOME/.foundry/bin:$PATH forge test  # Foundry: registry contracts
 ```
 
-Fixtures in `test/contracts/`: a deliberately vulnerable contract that trips all
-14 detectors, and a clean guarded contract that scores ≥ 90.
+- `test/analyzer.test.ts` — 14 detectors fire on the vulnerable fixture; clean ≥ 90.
+- `test/server.test.ts` — 402 challenge, malformed/invalid rejection, paid flow,
+  and "settlement failure ⇒ no free audit".
+- `test/e2e.chain.test.ts` — boots Anvil, deploys everything, registers the agent,
+  funds a buyer, drives a **real signed x402 payment** through the live app, and
+  asserts the USDC moved, the report verifies on-chain, and replays are rejected.
 
 ## Roadmap to submission (deadline 2026-06-15)
 
-1. ERC-8004 identity contract + registration script on Mantle testnet.
-2. x402 gateway in front of the audit API (reusing our existing x402-kit), priced per audit in stablecoin.
-3. On-chain attestation: hash of each report + score written to Mantle so the agent's audit history is verifiable.
-4. Thin web demo + 2–3 min demo video; submit BUIDL on DoraHacks.
+1. ✅ ERC-8004 registries + agent registration (deploy script ready).
+2. ✅ x402 pay-per-audit gateway in front of the audit API.
+3. ✅ On-chain attestation of each report; full loop proven on a live EVM.
+4. ⏳ Deploy to Mantle Sepolia (gas-blocked — `contracts/DEPLOY.md`).
+5. ⏳ 2–3 min demo video (driven by `scripts/demo.ts`); submit BUIDL on DoraHacks.
 
 ## License
 
