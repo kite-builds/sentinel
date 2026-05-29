@@ -39,6 +39,10 @@ contract Vault {
 }`;
 
 const log = (s = "") => console.log(s);
+// Optional presentation pacing for the hackathon video recording. Default 0 (no
+// pause) keeps test/CI runs fast; set DEMO_PACE_MS=1400 when recording.
+const PACE = Number(process.env.DEMO_PACE_MS) || 0;
+const pace = (mult = 1) => (PACE ? new Promise((r) => setTimeout(r, PACE * mult)) : Promise.resolve());
 const step = (n: number, s: string) => console.log(`\n\x1b[36m[${n}]\x1b[0m \x1b[1m${s}\x1b[0m`);
 
 function artifact(name: string, file = name) {
@@ -50,6 +54,16 @@ function abi(name: string, file = name) {
 }
 
 async function main() {
+  if (PACE) {
+    log("\x1b[1m\x1b[36m┌─────────────────────────────────────────────────────────────┐\x1b[0m");
+    log("\x1b[1m\x1b[36m│  SENTINEL — an AI audit agent that EARNS                     │\x1b[0m");
+    log("\x1b[1m\x1b[36m│  ERC-8004 identity · x402 micropayments · on-chain receipts  │\x1b[0m");
+    log("\x1b[1m\x1b[36m│  The Turing Test Hackathon 2026 · Mantle · AI DevTools       │\x1b[0m");
+    log("\x1b[1m\x1b[36m└─────────────────────────────────────────────────────────────┘\x1b[0m");
+    log("\n  It audits Solidity contracts and \x1b[1mcharges per audit\x1b[0m — code paying");
+    log("  code, no invoices. Watch one full earning loop on a live EVM:\n");
+    await pace(2);
+  }
   step(0, "Booting local Anvil chain + deploying Sentinel's on-chain layer");
   const anvil: ChildProcess = spawn("anvil", ["--port", "8547", "--chain-id", String(CHAIN_ID), "--silent"], {
     stdio: "ignore",
@@ -77,6 +91,7 @@ async function main() {
     log(`    ValidationRegistry ${await validation.getAddress()}`);
     log(`    MockUSDC           ${usdcAddr}`);
     log(`    Sentinel agent #1  ${agent.address}  domain=${DOMAIN}`);
+    await pace(1.5);
 
     // Start the live HTTP agent.
     const paywallCfg: PaywallConfig = {
@@ -101,6 +116,7 @@ async function main() {
     step(1, "Buyer reads the agent's ERC-8004 AgentCard");
     const card = await (await fetch(`${base}/.well-known/agent.json`)).json();
     log(`    ${JSON.stringify(card.registrations?.[0] ?? {}, null, 0)}  price=${card.service.price.amountAtomic} atomic USDC`);
+    await pace();
 
     step(2, "Buyer requests an audit with NO payment → 402 Payment Required");
     const unpaid = await fetch(`${base}/audit`, {
@@ -108,6 +124,7 @@ async function main() {
     });
     const challenge: any = await unpaid.json();
     log(`    HTTP ${unpaid.status} — accepts: ${challenge.accepts[0].scheme} ${challenge.accepts[0].maxAmountRequired} on ${challenge.accepts[0].network}`);
+    await pace();
 
     step(3, "Buyer signs an x402 (EIP-3009) payment authorization");
     const now = Math.floor(Date.now() / 1000);
@@ -125,6 +142,7 @@ async function main() {
     );
     const payment: ExactPaymentPayload = { x402Version: 1, scheme: "exact", network: "anvil", payload: { signature, authorization: auth } };
     log(`    signed: pay ${PRICE} USDC from ${auth.from.slice(0, 10)}… → ${auth.to.slice(0, 10)}…`);
+    await pace();
 
     const usdcRead = new ethers.Contract(usdcAddr, abi("MockUSDC"), provider);
     const buyerBefore = await usdcRead.balanceOf(buyer.address);
@@ -138,6 +156,7 @@ async function main() {
     const result: any = await paid.json();
     log(`    HTTP ${paid.status} — ${result.report.counts.high} high · ${result.report.counts.medium} med · ${result.report.counts.gas} gas · score ${result.report.score}/100`);
     for (const f of result.report.findings.slice(0, 4)) log(`      • [${f.severity.toUpperCase()}] ${f.id} L${f.line} ${f.title}`);
+    await pace(1.5);
 
     step(5, "Proof: payment settled + report anchored on-chain (ERC-8004 Validation Registry)");
     const buyerAfter = await usdcRead.balanceOf(buyer.address);
@@ -145,8 +164,14 @@ async function main() {
     log(`    attestation: recordId=${result.attestation.recordId}  riskScore=${result.attestation.riskScore}  reportHash=${result.attestation.reportHash.slice(0, 18)}…`);
     const verified = await attestation.verify(result.report);
     log(`    on-chain verify(agentId, subject, reportHash) = \x1b[32m${verified}\x1b[0m`);
+    await pace(1.5);
 
-    log(`\n\x1b[32m✔ Sentinel sold an audit, got paid trustlessly, and left a verifiable on-chain record.\x1b[0m\n`);
+    log(`\n\x1b[32m✔ Sentinel sold an audit, got paid trustlessly, and left a verifiable on-chain record.\x1b[0m`);
+    if (PACE) {
+      log(`\x1b[2m  Live on Mantle Sepolia · github.com/kite-builds/sentinel · MIT\x1b[0m\n`);
+    } else {
+      log("");
+    }
 
     server.close();
     provider.destroy();
