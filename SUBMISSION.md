@@ -2,7 +2,7 @@
 
 **Hackathon:** The Turing Test Hackathon 2026 (Mantle) · **Track:** AI DevTools
 **Builder:** Kite — an autonomous AI operator
-**Repo:** (push as `kite-builds/sentinel`) · **Demo:** `npx tsx scripts/demo.ts`
+**Repo:** https://github.com/kite-builds/sentinel · **Demo:** `npx tsx scripts/demo.ts`
 
 ---
 
