@@ -76,7 +76,13 @@ Tests: 15/15 vitest (incl. a real signed-payment e2e on Anvil) + 7/7 Foundry, ts
 - Sentinel agentId `1`, domain `sentinel.audit`, deployer `0x9703C68D01923916D9d9B9f1B824CbE4c8cd501e`
 - [View on explorer](https://explorer.sepolia.mantle.xyz/address/0x8F18f53a7ED086FFe409933668b2F3c48d26CbF4)
 
-**Next** — thin web UI, demo video.
+**Next** — thin web UI (optional polish).
+
+## Demo video
+`media/sentinel-demo.mp4` (27s) — title card → the live x402 paid-audit loop
+(read AgentCard → 402 → signed EIP-3009 payment → paid audit → USDC settles →
+on-chain `verify()` true) → on-chain-proof outro with the live Mantle Sepolia
+registry addresses.
 
 ## Tech
 TypeScript, ethers v6, Express, `@solidity-parser/parser`, Foundry/Solidity 0.8.24,
