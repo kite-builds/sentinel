@@ -9,7 +9,7 @@
  * Requires `anvil` (Foundry) on PATH and `forge build` artifacts in ./out.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { spawn, type ChildProcess } from "node:child_process";
+import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { ethers } from "ethers";
 import request from "supertest";
@@ -41,6 +41,15 @@ function artifact(name: string, file = name) {
   return { abi: a.abi, bytecode: a.bytecode.object as string };
 }
 
+// This e2e suite needs Foundry's `anvil` on PATH. It's an optional dev tool, so
+// a fresh clone (or CI without Foundry) won't have it. Detect it up front and
+// skip the whole suite cleanly instead of letting `spawn("anvil")` throw an
+// async ENOENT that surfaces as an unhandled error and reds the run.
+const hasAnvil = spawnSync("anvil", ["--version"], { stdio: "ignore" }).error === undefined;
+if (!hasAnvil) {
+  console.warn("[e2e.chain] skipping: `anvil` not found on PATH (install Foundry to run the on-chain e2e).");
+}
+
 let anvil: ChildProcess;
 
 async function waitForRpc(provider: ethers.JsonRpcProvider, tries = 50) {
@@ -63,7 +72,7 @@ async function deploy(name: string, signer: ethers.Signer, args: any[] = [], fil
   return c;
 }
 
-describe("Sentinel e2e (anvil)", () => {
+describe.skipIf(!hasAnvil)("Sentinel e2e (anvil)", () => {
   let identityAddr: string;
   let validationAddr: string;
   let usdcAddr: string;
@@ -75,6 +84,9 @@ describe("Sentinel e2e (anvil)", () => {
     anvil = spawn("anvil", ["--port", "8546", "--chain-id", String(CHAIN_ID), "--silent"], {
       stdio: "ignore",
     });
+    // Capture spawn errors so a failed launch rejects beforeAll rather than
+    // escaping as an unhandled exception.
+    anvil.on("error", (e) => console.error("[e2e.chain] anvil failed to launch:", e.message));
     // cacheTimeout:-1 disables ethers' getTransactionCount cache; with anvil's
     // instant mining the default 250ms cache hands the same nonce to back-to-back
     // txs ("nonce too low").
