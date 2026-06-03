@@ -1,0 +1,25 @@
+{
+  "network": "Mantle Sepolia",
+  "chainId": 5003,
+  "agentId": 1,
+  "agentDomain": "sentinel.audit",
+  "agentAddress": "0x9703C68D01923916D9d9B9f1B824CbE4c8cd501e",
+  "subject": "Vault.sol",
+  "riskScore": 57,
+  "safetyScore": 43,
+  "findings": 5,
+  "counts": {
+    "high": 2,
+    "medium": 2,
+    "low": 0,
+    "gas": 1
+  },
+  "reportHash": "0xadee01f7d90c5abab6d0dfdffaafa1e19151c2040fe247ad358b97f3e65dfc53",
+  "subjectHash": "0xed1c32a3115f17c8e54c4738aab29e2561abb350eb8fb38978feac3723357c69",
+  "recordId": 0,
+  "txHash": "0x0c6ccdba041e09e33e0ed00c3ac5b6e558fa925ced495228d18a026269290770",
+  "validationRegistry": "0x6925CDFb19606C165d1ce4bCA16895a9a9Ac3507",
+  "identityRegistry": "0x8F18f53a7ED086FFe409933668b2F3c48d26CbF4",
+  "txUrl": "https://explorer.sepolia.mantle.xyz/tx/0x0c6ccdba041e09e33e0ed00c3ac5b6e558fa925ced495228d18a026269290770",
+  "registryUrl": "https://explorer.sepolia.mantle.xyz/address/0x6925CDFb19606C165d1ce4bCA16895a9a9Ac3507"
+}

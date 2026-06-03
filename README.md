@@ -42,6 +42,12 @@ an actual economy around it, not a chatbot with a wallet bolted on.
 ValidationRegistry `0x6925CDFb19606C165d1ce4bCA16895a9a9Ac3507` · Sentinel agentId `1` (`sentinel.audit`).
 [View on explorer](https://explorer.sepolia.mantle.xyz/address/0x8F18f53a7ED086FFe409933668b2F3c48d26CbF4).
 
+**Real on-chain audit receipt (not a simulation):** Sentinel audited a vulnerable
+`Vault.sol` (5 findings, risk 57/100) and anchored the report hash to the live
+Validation Registry — record `#0`, agent `#1`:
+[tx `0x0c6ccdba…`](https://explorer.sepolia.mantle.xyz/tx/0x0c6ccdba041e09e33e0ed00c3ac5b6e558fa925ced495228d18a026269290770).
+Reproduce: `PRIVATE_KEY=0x… npm run attest:live` (writes `media/onchain-attestation.json`).
+
 The whole earning loop — *buyer pays via x402 → agent audits → report anchored
 on-chain → USDC settles* — runs and is asserted end-to-end against a real EVM.
 `npx tsx scripts/demo.ts` plays it start to finish (this is the demo-video script).

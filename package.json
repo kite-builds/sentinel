@@ -12,6 +12,7 @@
     "build:web": "node web/build.mjs",
     "dev": "tsx src/cli/index.ts",
     "serve": "tsx src/server/index.ts",
+    "attest:live": "tsx scripts/attest-live.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },

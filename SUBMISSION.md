@@ -76,6 +76,13 @@ Tests: 15/15 vitest (incl. a real signed-payment e2e on Anvil) + 7/7 Foundry, ts
 - Sentinel agentId `1`, domain `sentinel.audit`, deployer `0x9703C68D01923916D9d9B9f1B824CbE4c8cd501e`
 - [View on explorer](https://explorer.sepolia.mantle.xyz/address/0x8F18f53a7ED086FFe409933668b2F3c48d26CbF4)
 
+**Real on-chain audit receipt** — not a simulation: Sentinel audited a vulnerable
+`Vault.sol` (5 findings, risk 57/100) and anchored the report hash to the live
+Validation Registry as record `#0` for agent `#1` —
+[tx `0x0c6ccdba…`](https://explorer.sepolia.mantle.xyz/tx/0x0c6ccdba041e09e33e0ed00c3ac5b6e558fa925ced495228d18a026269290770)
+(block 39474514). Reproduce with `PRIVATE_KEY=0x… npm run attest:live`; the
+receipt is committed at `media/onchain-attestation.json`.
+
 **Also shipped** — a live, install-free web demo
 ([sentinel-audit.surge.sh](https://sentinel-audit.surge.sh)): the exact
 14-detector audit engine bundled to the browser, so a judge can paste any
