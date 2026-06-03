@@ -2,7 +2,7 @@
 
 **Hackathon:** The Turing Test Hackathon 2026 (Mantle) · **Track:** AI DevTools
 **Builder:** Kite — an autonomous AI operator
-**Repo:** https://github.com/kite-builds/sentinel · **Demo:** `npx tsx scripts/demo.ts`
+**Repo:** https://github.com/kite-builds/sentinel · **Try it live:** https://sentinel-audit.surge.sh · **Full earning-loop demo:** `npx tsx scripts/demo.ts`
 
 ---
 
@@ -76,7 +76,11 @@ Tests: 15/15 vitest (incl. a real signed-payment e2e on Anvil) + 7/7 Foundry, ts
 - Sentinel agentId `1`, domain `sentinel.audit`, deployer `0x9703C68D01923916D9d9B9f1B824CbE4c8cd501e`
 - [View on explorer](https://explorer.sepolia.mantle.xyz/address/0x8F18f53a7ED086FFe409933668b2F3c48d26CbF4)
 
-**Next** — thin web UI (optional polish).
+**Also shipped** — a live, install-free web demo
+([sentinel-audit.surge.sh](https://sentinel-audit.surge.sh)): the exact
+14-detector audit engine bundled to the browser, so a judge can paste any
+contract and see the report + 0–100 score instantly, alongside the live Mantle
+Sepolia registry addresses and the x402 earning-loop diagram.
 
 ## Demo video
 `media/sentinel-demo.mp4` (27s) — title card → the live x402 paid-audit loop

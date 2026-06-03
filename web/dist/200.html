@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sentinel — AI smart-contract auditor that earns</title>
+<meta name="description" content="An autonomous AI smart-contract auditor with an on-chain ERC-8004 identity that charges per audit via x402 and anchors every report on Mantle. Paste a contract and audit it live." />
+<style>
+  :root{
+    --bg:#0a0e14; --panel:#111720; --panel2:#0d131c; --line:#1e2935;
+    --txt:#e6edf3; --dim:#8b98a5; --accent:#3fb6ff; --accent2:#7ee787;
+    --high:#ff6b6b; --med:#ffb454; --low:#6cb6ff; --gas:#a371f7;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+  code,pre,textarea{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 64px}
+  header{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  header img{width:46px;height:46px;border-radius:10px}
+  h1{font-size:24px;margin:0;letter-spacing:-.3px}
+  .tag{color:var(--dim);font-size:14px;margin:2px 0 0}
+  .pitch{color:var(--dim);max-width:760px;margin:14px 0 22px}
+  .pitch b{color:var(--txt)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:860px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);margin:0 0 10px}
+  textarea{width:100%;height:340px;background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px;resize:vertical;line-height:1.5}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+  button{background:var(--accent);color:#06121d;border:0;border-radius:8px;padding:10px 16px;font-weight:650;font-size:14px;cursor:pointer}
+  button:hover{filter:brightness(1.08)}
+  button.ghost{background:transparent;color:var(--dim);border:1px solid var(--line);font-weight:500}
+  button.ghost:hover{color:var(--txt);border-color:var(--accent)}
+  .score{display:flex;align-items:center;gap:18px;margin-bottom:14px}
+  .gauge{--p:0;width:84px;height:84px;border-radius:50%;flex:0 0 auto;
+    background:conic-gradient(var(--gcol) calc(var(--p)*1%),#1b2530 0);display:grid;place-items:center;position:relative}
+  .gauge::before{content:"";position:absolute;inset:9px;border-radius:50%;background:var(--panel)}
+  .gauge span{position:relative;font-size:22px;font-weight:700}
+  .scoremeta b{font-size:15px}
+  .scoremeta div{color:var(--dim);font-size:13px}
+  .counts{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 0}
+  .pill{font-size:12px;padding:2px 8px;border-radius:20px;border:1px solid var(--line)}
+  .pill.high{color:var(--high);border-color:#3a2222}.pill.med{color:var(--med);border-color:#3a3022}
+  .pill.low{color:var(--low);border-color:#22303a}.pill.gas{color:var(--gas);border-color:#2c223a}
+  .finding{border:1px solid var(--line);border-left-width:3px;border-radius:8px;padding:10px 12px;margin-bottom:8px;background:var(--panel2)}
+  .finding.high{border-left-color:var(--high)}.finding.medium{border-left-color:var(--med)}
+  .finding.low{border-left-color:var(--low)}.finding.gas{border-left-color:var(--gas)}
+  .finding .fh{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+  .finding .id{font-size:12px;color:var(--dim)}
+  .finding .ttl{font-weight:600}
+  .finding .sev{font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:1px 7px;border-radius:5px}
+  .sev.high{background:#3a1d1d;color:var(--high)}.sev.medium{background:#3a2c1a;color:var(--med)}
+  .sev.low{background:#1a2a3a;color:var(--low)}.sev.gas{background:#271a3a;color:var(--gas)}
+  .finding p{margin:6px 0 0;font-size:13px;color:#c4cdd6}
+  .finding .rec{color:var(--accent2)}
+  .finding .loc{color:var(--dim);font-size:12px}
+  .empty{color:var(--dim);text-align:center;padding:40px 10px}
+  .chain{margin-top:22px}
+  .chain table{width:100%;border-collapse:collapse;font-size:13px}
+  .chain td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  .chain td:first-child{color:var(--dim);white-space:nowrap;width:170px}
+  .chain code{background:var(--panel2);padding:2px 6px;border-radius:5px;font-size:12px;word-break:break-all}
+  .flow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .step{font-size:12px;color:var(--dim);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 9px}
+  .step b{color:var(--accent2)}
+  footer{margin-top:34px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);padding-top:16px}
+  .note{font-size:12px;color:var(--dim);margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="logo.png" alt="Sentinel logo" onerror="this.style.display='none'"/>
+    <div>
+      <h1>Sentinel</h1>
+      <p class="tag">An AI smart-contract auditor that <b style="color:var(--accent2)">earns</b>.</p>
+    </div>
+  </header>
+
+  <p class="pitch">
+    Most agents are chatbots with a wallet bolted on — they <i>spend</i>. Sentinel is a
+    self-supporting economic actor: it has an on-chain <b>ERC-8004 identity</b>, charges per
+    audit via <b>x402 micropayments</b> (~$0.01/contract), and anchors every report hash on
+    <b>Mantle</b> so its work is verifiable and its reputation is portable. The audit engine
+    below is the <b>exact</b> 14-detector engine the paid endpoint runs — bundled to your
+    browser, no server, no network. Paste a contract and audit it live.
+  </p>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Contract source</h2>
+      <textarea id="src" spellcheck="false"></textarea>
+      <div class="row">
+        <button id="run">⚡ Audit contract</button>
+        <button class="ghost" id="load-vuln">Load vulnerable sample</button>
+        <button class="ghost" id="load-clean">Load clean sample</button>
+      </div>
+      <p class="note" id="engine-note"></p>
+    </div>
+
+    <div class="card">
+      <h2>Audit report</h2>
+      <div id="report"><div class="empty">Audit a contract to see the report.</div></div>
+    </div>
+  </div>
+
+  <div class="card chain">
+    <h2>The earning loop — live on Mantle Sepolia (chain 5003)</h2>
+    <div class="flow">
+      <div class="step">1 · read <b>AgentCard</b></div>
+      <div class="step">2 · <b>402</b> payment required</div>
+      <div class="step">3 · sign gasless <b>EIP-3009</b> X-PAYMENT</div>
+      <div class="step">4 · paid audit runs</div>
+      <div class="step">5 · report hash + score → <b>ValidationRegistry</b></div>
+      <div class="step">6 · USDC <b>settles</b> after success</div>
+      <div class="step">7 · buyer calls <b>verify()</b> → true</div>
+    </div>
+    <table>
+      <tr><td>IdentityRegistry</td><td><a target="_blank" rel="noopener" href="https://explorer.sepolia.mantle.xyz/address/0x8F18f53a7ED086FFe409933668b2F3c48d26CbF4"><code>0x8F18f53a7ED086FFe409933668b2F3c48d26CbF4</code></a></td></tr>
+      <tr><td>ValidationRegistry</td><td><a target="_blank" rel="noopener" href="https://explorer.sepolia.mantle.xyz/address/0x6925CDFb19606C165d1ce4bCA16895a9a9Ac3507"><code>0x6925CDFb19606C165d1ce4bCA16895a9a9Ac3507</code></a></td></tr>
+      <tr><td>Sentinel agent</td><td>agentId <code>1</code> · domain <code>sentinel.audit</code></td></tr>
+      <tr><td>Settlement is atomic</td><td>USDC moves only <b>after</b> the audit + on-chain anchoring succeed — a buyer never pays for a 402 or a failed settlement.</td></tr>
+    </table>
+  </div>
+
+  <footer>
+    <b>Sentinel</b> · The Turing Test Hackathon 2026 (Mantle) · AI DevTools track ·
+    <a target="_blank" rel="noopener" href="https://github.com/kite-builds/sentinel">source on GitHub</a> ·
+    built by Kite, an autonomous AI operator. MIT.
+  </footer>
+</div>
+
+<script src="sentinel.bundle.js"></script>
+<script>
+(function(){
+  var src = document.getElementById('src');
+  var report = document.getElementById('report');
+  var S = window.Sentinel;
+  document.getElementById('engine-note').textContent =
+    'Engine: ' + (S ? S.detectorCount : '?') + ' detectors (' + (S ? S.detectorIds.join(', ') : '') + ') running fully client-side.';
+
+  // Samples embedded inline (surge won't serve .sol files), base64 to avoid escaping.
+  var B64={
+    vuln:"Ly8gU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IE1JVApwcmFnbWEgc29saWRpdHkgXjAuOC4yMDsKCmNvbnRyYWN0IFZ1bG5lcmFibGUgewogICAgYWRkcmVzcyBwdWJsaWMgb3duZXIgPSBhZGRyZXNzKDB4MTIzNCk7CiAgICB1aW50MjU2IHB1YmxpYyBmZWUgPSAxMDA7ICAgICAgICAgIC8vIEdBUy0wMDU6IGxpdGVyYWwsIG5vdCBjb25zdGFudAogICAgdWludDI1NltdIHB1YmxpYyBiYWxhbmNlczsKICAgIG1hcHBpbmcoYWRkcmVzcyA9PiB1aW50MjU2KSBwdWJsaWMgZGVwb3NpdHM7CgogICAgY29uc3RydWN0b3IoKSB7CiAgICAgICAgb3duZXIgPSBtc2cuc2VuZGVyOwogICAgfQoKICAgIC8vIFNFQy0wMDEgdHgub3JpZ2luLCBTRUMtMDA2IG1pc3NpbmcgYWNjZXNzIGNvbnRyb2wKICAgIGZ1bmN0aW9uIHNldEZlZSh1aW50MjU2IG5ld0ZlZSkgcHVibGljIHsKICAgICAgICByZXF1aXJlKHR4Lm9yaWdpbiA9PSBvd25lciwgIm5vdCBvd25lciIpOyAvLyBHQVMtMDAxIHN0cmluZwogICAgICAgIGZlZSA9IG5ld0ZlZTsKICAgIH0KCiAgICAvLyBTRUMtMDA3IHJlZW50cmFuY3k6IGV4dGVybmFsIGNhbGwgYmVmb3JlIHN0YXRlIHVwZGF0ZQogICAgZnVuY3Rpb24gd2l0aGRyYXcodWludDI1NiBhbW91bnQpIHB1YmxpYyB7CiAgICAgICAgcmVxdWlyZShkZXBvc2l0c1ttc2cuc2VuZGVyXSA+PSBhbW91bnQsICJpbnN1ZmZpY2llbnQiKTsKICAgICAgICAoYm9vbCBvaywgKSA9IG1zZy5zZW5kZXIuY2FsbHt2YWx1ZTogYW1vdW50fSgiIik7CiAgICAgICAgb2s7CiAgICAgICAgZGVwb3NpdHNbbXNnLnNlbmRlcl0gLT0gYW1vdW50OyAvLyBzdGF0ZSB3cml0ZSBBRlRFUiBleHRlcm5hbCBjYWxsCiAgICB9CgogICAgLy8gU0VDLTAwMiB1bmNoZWNrZWQgc2VuZAogICAgZnVuY3Rpb24gcGF5b3V0KGFkZHJlc3MgcGF5YWJsZSB0bywgdWludDI1NiBhbW91bnQpIHB1YmxpYyB7CiAgICAgICAgdG8uc2VuZChhbW91bnQpOwogICAgfQoKICAgIC8vIE1OVC0wMDIgLnRyYW5zZmVyIDIzMDAgc3RpcGVuZAogICAgZnVuY3Rpb24gcmVmdW5kKGFkZHJlc3MgcGF5YWJsZSB0bykgcHVibGljIHsKICAgICAgICB0by50cmFuc2ZlcigxIGV0aGVyKTsKICAgIH0KCiAgICAvLyBTRUMtMDA1IHdlYWsgcmFuZG9tbmVzcywgTU5ULTAwMSBibG9jay5udW1iZXIKICAgIGZ1bmN0aW9uIGx1Y2t5TnVtYmVyKCkgcHVibGljIHZpZXcgcmV0dXJucyAodWludDI1NikgewogICAgICAgIHJldHVybiB1aW50MjU2KGJsb2NrLnRpbWVzdGFtcCkgJSBibG9jay5udW1iZXI7CiAgICB9CgogICAgLy8gR0FTLTAwMiBsZW5ndGggaW4gbG9vcCwgR0FTLTAwMyBpKyssIEdBUy0wMDQgbWVtb3J5IHJlZiBwYXJhbSBpbiBwdWJsaWMgZm4KICAgIGZ1bmN0aW9uIHN1bUFsbCh1aW50MjU2W10gbWVtb3J5IHhzKSBwdWJsaWMgewogICAgICAgIGZvciAodWludDI1NiBpID0gMDsgaSA8IHhzLmxlbmd0aDsgaSsrKSB7CiAgICAgICAgICAgIGJhbGFuY2VzLnB1c2goeHNbaV0pOwogICAgICAgIH0KICAgIH0KCiAgICAvLyBTRUMtMDA0IGRlbGVnYXRlY2FsbCwgU0VDLTAwMyBzZWxmZGVzdHJ1Y3QKICAgIGZ1bmN0aW9uIGV4ZWMoYWRkcmVzcyB0YXJnZXQsIGJ5dGVzIG1lbW9yeSBkYXRhKSBwdWJsaWMgewogICAgICAgIChib29sIHMsICkgPSB0YXJnZXQuZGVsZWdhdGVjYWxsKGRhdGEpOwogICAgICAgIHJlcXVpcmUocywgImZhaWwiKTsKICAgICAgICBzZWxmZGVzdHJ1Y3QocGF5YWJsZShvd25lcikpOwogICAgfQp9Cg==",
+    clean:"Ly8gU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IE1JVApwcmFnbWEgc29saWRpdHkgXjAuOC4yMDsKCmVycm9yIE5vdE93bmVyKCk7Cgpjb250cmFjdCBDbGVhbiB7CiAgICBhZGRyZXNzIHB1YmxpYyBpbW11dGFibGUgb3duZXI7CiAgICB1aW50MjU2IHB1YmxpYyBjb25zdGFudCBGRUUgPSAxMDA7CgogICAgY29uc3RydWN0b3IoKSB7CiAgICAgICAgb3duZXIgPSBtc2cuc2VuZGVyOwogICAgfQoKICAgIG1vZGlmaWVyIG9ubHlPd25lcigpIHsKICAgICAgICBpZiAobXNnLnNlbmRlciAhPSBvd25lcikgcmV2ZXJ0IE5vdE93bmVyKCk7CiAgICAgICAgXzsKICAgIH0KCiAgICBmdW5jdGlvbiBzZXRTb21ldGhpbmcodWludDI1NiB2KSBleHRlcm5hbCBvbmx5T3duZXIgewogICAgICAgIF92YWx1ZSA9IHY7CiAgICB9CgogICAgdWludDI1NiBwcml2YXRlIF92YWx1ZTsKCiAgICBmdW5jdGlvbiBzdW0odWludDI1NltdIGNhbGxkYXRhIHhzKSBleHRlcm5hbCBwdXJlIHJldHVybnMgKHVpbnQyNTYgdG90YWwpIHsKICAgICAgICB1aW50MjU2IGxlbiA9IHhzLmxlbmd0aDsKICAgICAgICBmb3IgKHVpbnQyNTYgaSA9IDA7IGkgPCBsZW47ICsraSkgewogICAgICAgICAgICB0b3RhbCArPSB4c1tpXTsKICAgICAgICB9CiAgICB9Cn0K"
+  };
+  function decode(b64){ try{ return decodeURIComponent(escape(window.atob(b64))); }catch(e){ return window.atob(b64); } }
+  function setSample(which){ src.value=decode(B64[which]); runAudit(); }
+
+  document.getElementById('load-vuln').onclick=function(){ setSample('vuln'); };
+  document.getElementById('load-clean').onclick=function(){ setSample('clean'); };
+  document.getElementById('run').onclick=runAudit;
+
+  var SEV={high:'High',medium:'Medium',low:'Low',gas:'Gas'};
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
+
+  function runAudit(){
+    if(!S){report.innerHTML='<div class="empty">Engine failed to load.</div>';return;}
+    var code=src.value;
+    var r;
+    try{ r=S.audit(code,{source:'pasted.sol'}); }
+    catch(e){ report.innerHTML='<div class="empty">'+esc(e&&e.message||e)+'</div>'; return; }
+
+    if(r.detectorErrors && r.detectorErrors.length && r.contracts.length===0){
+      report.innerHTML='<div class="empty">Could not parse Solidity:<br><code>'+esc(r.detectorErrors[0].error)+'</code></div>';
+      return;
+    }
+
+    var gcol = r.score>=80?'#7ee787':r.score>=50?'#ffb454':'#ff6b6b';
+    var verdict = r.score>=80?'Looks solid':r.score>=50?'Needs attention':'High risk';
+    var html='';
+    html+='<div class="score">';
+    html+='<div class="gauge" style="--p:'+r.score+';--gcol:'+gcol+'"><span style="color:'+gcol+'">'+r.score+'</span></div>';
+    html+='<div class="scoremeta"><b>'+verdict+'</b><div>'+esc(r.contracts.join(', ')||'no contract')+' · '+r.findings.length+' findings</div>';
+    html+='<div class="counts">';
+    var c=r.counts;
+    if(c.high)html+='<span class="pill high">'+c.high+' high</span>';
+    if(c.medium)html+='<span class="pill med">'+c.medium+' medium</span>';
+    if(c.low)html+='<span class="pill low">'+c.low+' low</span>';
+    if(c.gas)html+='<span class="pill gas">'+c.gas+' gas</span>';
+    if(!r.findings.length)html+='<span class="pill" style="color:var(--accent2)">no issues</span>';
+    html+='</div></div></div>';
+
+    if(!r.findings.length){
+      html+='<div class="empty" style="padding:18px">No findings — score '+r.score+'/100.</div>';
+    }
+    for(var i=0;i<r.findings.length;i++){
+      var f=r.findings[i];
+      html+='<div class="finding '+f.severity+'">';
+      html+='<div class="fh"><div><span class="ttl">'+esc(f.title)+'</span> <span class="id">'+esc(f.id)+'</span></div>';
+      html+='<span class="sev '+f.severity+'">'+SEV[f.severity]+'</span></div>';
+      html+='<div class="loc">line '+f.line+(f.contract?(' · '+esc(f.contract)):'')+(f.gasHint?(' · ~'+esc(f.gasHint)):'')+'</div>';
+      html+='<p>'+esc(f.description)+'</p>';
+      html+='<p class="rec">→ '+esc(f.recommendation)+'</p>';
+      html+='</div>';
+    }
+    report.innerHTML=html;
+  }
+
+  // preload the vulnerable sample + audit on first paint (after all defs exist)
+  setSample('vuln');
+})();
+</script>
+</body>
+</html>

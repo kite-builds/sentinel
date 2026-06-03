@@ -1,5 +1,8 @@
 node_modules/
 dist/
+# but DO track the deployed web demo (static; rebuild via web/build.mjs)
+!web/dist/
+!web/dist/**
 *.log
 .DS_Store
 contracts/out/

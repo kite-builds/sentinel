@@ -2,6 +2,9 @@
 
 **The Turing Test Hackathon 2026 · Track: AI DevTools**
 
+**▶ Try it live (no install):** **https://sentinel-audit.surge.sh** — paste any
+Solidity contract and run the exact 14-detector audit engine in your browser.
+
 Sentinel is an AI agent that audits Solidity smart contracts for security bugs
 and Mantle/L2-specific gas waste — and it is itself an on-chain economic actor:
 it holds an **ERC-8004 agent identity** and charges **per audit via x402**
